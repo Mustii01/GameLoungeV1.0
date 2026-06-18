@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GameLounge — About</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDbHvtVHOTc6wx53bp98MGakWerh30R0tk",
+        authDomain: "gamelounge-4b6ca.firebaseapp.com",
+        projectId: "gamelounge-4b6ca",
+        storageBucket: "gamelounge-4b6ca.firebasestorage.app",
+        messagingSenderId: "1072452768609",
+        appId: "1:1072452768609:web:9de173f57704c809212b20"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
+    <script src="script.js" defer></script>
+  </head>
+  <body data-page="about">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="home.html" aria-label="GameLounge Home">
+          <div class="brand__mark" aria-hidden="true"></div>
+          <div>
+            <div class="brand__name">GameLounge</div>
+            <span class="brand__tag">About the team</span>
+          </div>
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a href="home.html">Home</a>
+          <a href="about.html">About</a>
+          <a href="settings.html">Settings</a>
+        </nav>
+
+        <div class="user-chip" aria-label="Signed in user">
+          <div class="user-chip__avatar" aria-hidden="true"></div>
+          <div class="user-chip__meta">
+            <div class="user-chip__name" data-user-name></div>
+            <div class="user-chip__email" data-user-email></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="container">
+      <section class="card">
+        <div class="card__pad-lg">
+          <div class="kicker">Indie studio profile</div>
+          <h1 class="title" style="margin-top: 8px">A small team with a high-polish mindset.</h1>
+          <p class="subtitle">
+            GameLounge is a local portfolio storefront designed to present Godot projects with a clean visual hierarchy,
+            curated layouts, and premium UI details — inspired by itch.io, but easier to navigate.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="title" style="font-size: 22px; margin: 0">Team</h2>
+        <p class="subtitle" style="margin-top: 6px">Professional profile cards with image placeholders.</p>
+
+        <div class="section grid grid--3" aria-label="Team members">
+          <article class="card">
+            <div class="card__pad-lg profile">
+              <div class="profile__head">
+                <div class="profile__photo" role="img" aria-label="Developer photo placeholder"></div>
+                <div>
+                  <h3 class="profile__name">Mustafa Sohail</h3>
+                  <p class="profile__role">Team Leader &amp; Interactive Developer</p>
+                </div>
+              </div>
+              <p class="profile__about">
+                Mustafa Sohail leads the overall direction of the project and coordinates development activities across the
+                team. As the Interactive Developer, he is responsible for designing gameplay systems, user interactions,
+                feature implementation, and ensuring that the player experience remains engaging and intuitive. He oversees
+                project planning, development decisions, and integration of all game systems.
+              </p>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__pad-lg profile">
+              <div class="profile__head">
+                <div class="profile__photo" role="img" aria-label="Developer photo placeholder"></div>
+                <div>
+                  <h3 class="profile__name">Rahmat Ullah Khan</h3>
+                  <p class="profile__role">Frontend Developer</p>
+                </div>
+              </div>
+              <p class="profile__about">
+                Rahmat Ullah Khan is responsible for designing and implementing the user interface of the platform. He
+                develops responsive layouts, ensures visual consistency across pages, improves usability, and maintains a
+                smooth user experience. His work focuses on transforming design concepts into functional and accessible web
+                interfaces.
+              </p>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__pad-lg profile">
+              <div class="profile__head">
+                <div class="profile__photo" role="img" aria-label="Developer photo placeholder"></div>
+                <div>
+                  <h3 class="profile__name">Faran Khan</h3>
+                  <p class="profile__role">Tester &amp; Documentation Specialist</p>
+                </div>
+              </div>
+              <p class="profile__about">
+                Faran Khan is responsible for quality assurance, testing, and project documentation. He identifies bugs,
+                verifies functionality, records testing results, and maintains project documentation. His work helps ensure
+                platform reliability, stability, and clear communication throughout the development process.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer class="footer">
+        GameLounge v1.0.0 • Local Development Build • Vanilla HTML/CSS/JavaScript • LocalStorage
+      </footer>
+    </main>
+  </body>
+</html>
+

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GameLounge — Home</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDbHvtVHOTc6wx53bp98MGakWerh30R0tk",
+        authDomain: "gamelounge-4b6ca.firebaseapp.com",
+        projectId: "gamelounge-4b6ca",
+        storageBucket: "gamelounge-4b6ca.firebasestorage.app",
+        messagingSenderId: "1072452768609",
+        appId: "1:1072452768609:web:9de173f57704c809212b20"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
+    <script src="script.js" defer></script>
+  </head>
+  <body data-page="home">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="home.html" aria-label="GameLounge Home">
+          <div class="brand__mark" aria-hidden="true"></div>
+          <div>
+            <div class="brand__name">GameLounge</div>
+            <span class="brand__tag">Godot games • Premium showcase</span>
+          </div>
+        </a>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a href="home.html">Home</a>
+          <a href="about.html">About</a>
+          <a href="settings.html">Settings</a>
+        </nav>
+
+        <div class="user-chip" aria-label="Signed in user">
+          <div class="user-chip__avatar" aria-hidden="true"></div>
+          <div class="user-chip__meta">
+            <div class="user-chip__name" data-user-name></div>
+            <div class="user-chip__email" data-user-email></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="container">
+      <section class="card hero">
+        <div class="hero__inner">
+          <div class="card__pad-lg">
+            <div class="kicker">Local portfolio platform</div>
+            <h1 class="title" data-hero-title></h1>
+            <p class="subtitle" data-hero-subtitle></p>
+            <div class="hero__cta">
+              <a class="btn btn--primary" href="#games">Browse games</a>
+              <a class="btn btn--ghost" href="about.html">Meet the team</a>
+            </div>
+          </div>
+
+          <div class="card card--flat" style="border: 0; background: transparent">
+            <div class="card__pad-lg">
+              <div class="pill pill--accent">Dark theme by default</div>
+              <div class="pill" style="margin-top: 10px">Likes + reviews saved locally</div>
+              <div class="pill" style="margin-top: 10px">No backend • No database</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section grid grid--2" aria-label="Featured game">
+        <div class="card">
+          <div class="card__pad-lg">
+            <div class="kicker">Featured</div>
+            <h2 class="title" style="font-size: 22px; margin-top: 8px" data-featured-title></h2>
+            <p class="subtitle" data-featured-desc></p>
+
+            <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
+              <span class="pill" data-featured-genre></span>
+              <button class="like-btn" type="button" data-featured-like aria-pressed="false">
+                <span class="like-btn__icon" aria-hidden="true">♥</span>
+                <span class="small" data-featured-like-count>0</span>
+              </button>
+            </div>
+
+            <div class="btn-row" style="margin-top: 14px">
+              <a class="btn btn--primary" data-featured-link href="game.html">View Game</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__pad-lg">
+            <div class="kicker">What’s new</div>
+            <h3 class="title" style="font-size: 18px; margin-top: 8px">Clean storefront feel.</h3>
+            <p class="subtitle">
+              Cards, soft shadows, consistent spacing, and smooth hover interactions — inspired by itch.io, but built for a
+              smaller curated lineup.
+            </p>
+            <div class="btn-row" style="margin-top: 14px">
+              <a class="btn btn--ghost" href="settings.html">Customize theme</a>
+              <a class="btn btn--ghost" href="#games">Explore all games</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="games" class="section">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+          <div>
+            <h2 class="title" style="font-size: 22px; margin: 0">All Games</h2>
+            <p class="subtitle" style="margin: 6px 0 0">Like, download placeholders, and write reviews — all saved locally.</p>
+          </div>
+        </div>
+
+        <div class="section game-grid" data-game-grid></div>
+      </section>
+
+      <footer class="footer">
+        GameLounge v1.0.0 • Local Development Build • Vanilla HTML/CSS/JavaScript • LocalStorage
+      </footer>
+    </main>
+
+    <div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal__panel">
+        <div class="modal__head">
+          <h3 class="modal__title" id="modalTitle"></h3>
+          <button class="icon-btn" type="button" data-modal-close aria-label="Close dialog">✕</button>
+        </div>
+        <div class="modal__body" id="modalBody"></div>
+      </div>
+    </div>
+  </body>
+</html>
+

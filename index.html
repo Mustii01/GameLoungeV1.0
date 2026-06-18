@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GameLounge — Login</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDbHvtVHOTc6wx53bp98MGakWerh30R0tk",
+        authDomain: "gamelounge-4b6ca.firebaseapp.com",
+        projectId: "gamelounge-4b6ca",
+        storageBucket: "gamelounge-4b6ca.firebasestorage.app",
+        messagingSenderId: "1072452768609",
+        appId: "1:1072452768609:web:9de173f57704c809212b20"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
+    <script src="script.js" defer></script>
+  </head>
+  <body data-page="login">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="auth">
+      <div class="card auth__card">
+        <div class="card__pad-lg">
+          <div class="auth__header">
+            <div class="brand">
+              <div class="brand__mark" aria-hidden="true"></div>
+              <div>
+                <div class="brand__name">GameLounge</div>
+                <span class="brand__tag">Premium indie showcase • Local-only</span>
+              </div>
+            </div>
+            <h1 class="title" style="font-size: 22px; margin-top: 8px">Login</h1>
+            <p class="subtitle">Access your local library, likes, and reviews.</p>
+          </div>
+
+          <main id="main">
+            <div class="alert alert--error" data-alert hidden></div>
+
+            <form class="form" data-login-form>
+              <div class="field">
+                <div class="label">Email</div>
+                <input class="input" type="email" autocomplete="email" placeholder="you@example.com" data-email />
+              </div>
+
+              <div class="field">
+                <div class="label">Password</div>
+                <input class="input" type="password" autocomplete="current-password" placeholder="Your password" data-password />
+              </div>
+
+              <div class="btn-row">
+                <button class="btn btn--primary" type="submit">Login</button>
+                <a class="btn btn--ghost" href="register.html">Create account</a>
+              </div>
+            </form>
+
+            <div class="auth__footer">
+              Tip: This platform runs entirely locally. Accounts and data are stored in your browser’s LocalStorage.
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
