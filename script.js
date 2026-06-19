@@ -19,7 +19,7 @@
       developer: "Mustii01",
       releaseDate: "2024-01-01",
       shortDescription: "A classic Flappy Bird clone.",
-      longDescription: "Story:\nTap to flap and avoid the pipes!\n\nGameplay:\nNavigate your bird through the gaps in the pipes to get the highest score possible.\n\nFeatures:\n• Classic arcade gameplay\n• Simple controls\n• High score tracking",
+      longDescription: "Story:\nTap to flap and avoid the pipes!\n\nGameplay:\nNavigate your bird through the gaps in the pipes to get the highest score possible.\n\nFeatures:\n• Classic arcade gameplay\n• Simple controls",
       itchEmbed: "https://itch.io/embed-upload/17985846?color=333333",
       itchLink: "https://mustii01.itch.io/flappy-bird",
       coverImage: "images/flappybirdcover.png"
@@ -498,28 +498,21 @@
     meta.appendChild(reviewCount);
 
     const actions = document.createElement("div");
-    actions.className = "btn-row";
+            actions.className = "btn-row";
 
-    const viewBtn = document.createElement("a");
-    viewBtn.className = "btn btn--primary";
-    viewBtn.href = `game.html?id=${encodeURIComponent(game.id)}`;
-    viewBtn.textContent = "View Game";
+            const viewBtn = document.createElement("a");
+            viewBtn.className = "btn btn--primary";
+            viewBtn.href = `game.html?id=${encodeURIComponent(game.id)}`;
+            viewBtn.textContent = "View Game";
 
-    const downloadBtn = document.createElement("button");
-    downloadBtn.type = "button";
-    downloadBtn.className = "btn";
-    downloadBtn.dataset.action = "download";
-    downloadBtn.textContent = "Download";
+            const reviewBtn = document.createElement("button");
+            reviewBtn.type = "button";
+            reviewBtn.className = "btn btn--ghost";
+            reviewBtn.dataset.action = "review";
+            reviewBtn.textContent = "Review";
 
-    const reviewBtn = document.createElement("button");
-    reviewBtn.type = "button";
-    reviewBtn.className = "btn btn--ghost";
-    reviewBtn.dataset.action = "review";
-    reviewBtn.textContent = "Review";
-
-    actions.appendChild(viewBtn);
-    actions.appendChild(downloadBtn);
-    actions.appendChild(reviewBtn);
+            actions.appendChild(viewBtn);
+            actions.appendChild(reviewBtn);
 
     body.appendChild(titleRow);
     body.appendChild(desc);
@@ -537,7 +530,7 @@
     setText(heroTitle, "Indie releases, presented like a premium studio portfolio.");
     setText(
       heroSub,
-      "Browse our Godot projects, read community notes, and keep track of your favorites — now with Firebase."
+      "Browse our Godot projects, read about our dev team, like your favourites, now with Firebase!"
     );
 
     const featured = GAMES[0];
@@ -679,10 +672,6 @@
         if (!game) return;
 
         const action = target.getAttribute("data-action");
-        if (action === "download") {
-          downloadPlaceholder(game);
-          return;
-        }
         if (action === "like") {
           const liked = await toggleLike(account.email, game.id);
           target.setAttribute("aria-pressed", String(liked));
@@ -772,6 +761,47 @@
     if (reviewCount) reviewCount.textContent = `${reviews.length} reviews`;
 
     renderGameReviews(reviews);
+
+    // Add controls section for Flappy Bird
+    const aboutSection = qs(".section.grid.grid--2");
+    if (aboutSection && game.id === "flappy-bird") {
+      // Check if controls section already exists
+      if (!qs("[data-controls-section]")) {
+        const controlsCard = document.createElement("div");
+        controlsCard.className = "card";
+        controlsCard.setAttribute("data-controls-section", "true");
+        controlsCard.innerHTML = `
+          <div class="card__pad-lg">
+            <h2 class="title" style="font-size: 18px; margin: 0">Controls</h2>
+            <p class="subtitle" style="margin-top: 8px">spacebar to jump</p>
+          </div>
+        `;
+        aboutSection.appendChild(controlsCard);
+      }
+    }
+
+    // Update screenshots for Flappy Bird
+    const screenshotsContainer = qs(".section.screenshots");
+    if (screenshotsContainer && game.id === "flappy-bird") {
+      const imageFiles = [
+        "Image_2026-06-19_083358_289.jpg",
+        "Image_2026-06-19_083431_217.jpg",
+        "Image_2026-06-19_083449_048.jpg",
+        "Image_2026-06-19_083358_289.jpg", // Using existing images since we only have 3
+        "Image_2026-06-19_083431_217.jpg",
+        "Image_2026-06-19_083449_048.jpg"
+      ];
+      screenshotsContainer.innerHTML = "";
+      imageFiles.forEach((imgFile) => {
+        const img = document.createElement("img");
+        img.src = `images/${imgFile}`;
+        img.alt = "Flappy Bird screenshot";
+        img.className = "shot";
+        img.style.objectFit = "cover";
+        img.style.borderRadius = "var(--radius-md)";
+        screenshotsContainer.appendChild(img);
+      });
+    }
   }
 
   function renderGameReviews(reviews) {
@@ -800,17 +830,6 @@
         likeBtn.setAttribute("aria-pressed", String(liked));
         const newCount = await getGameLikeCount(game.id);
         setText(qs("[data-game-like-count]"), String(newCount));
-      });
-    }
-
-    const downloadBtn = qs("[data-game-download]");
-    if (downloadBtn) {
-      downloadBtn.addEventListener("click", () => {
-        if (game.itchLink) {
-          window.open(game.itchLink, "_blank");
-        } else {
-          downloadPlaceholder(game);
-        }
       });
     }
 
@@ -865,6 +884,7 @@
           return;
         }
         try {
+          console.log("Adding review...");
           await addReview({
             gameId: game.id,
             email: account.email,
@@ -872,12 +892,15 @@
             rating: Number(rating?.value || 3),
             text: reviewText,
           });
+          console.log("Review added successfully!");
           if (text) text.value = "";
           setAlert(alert, "success", "Review saved.");
           const reviews = await getGameReviews(game.id);
+          console.log("Fetched reviews:", reviews);
           setText(qs("[data-game-review-count]"), `${reviews.length} reviews`);
           renderGameReviews(reviews);
         } catch (e) {
+          console.error("Error saving review:", e);
           setAlert(alert, "error", "Failed to save review. Please try again.");
         }
       });
