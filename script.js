@@ -730,6 +730,16 @@
     const playBtn = qs("[data-game-play]");
     if (playBtn) {
       playBtn.addEventListener("click", () => {
+        if (game.itchEmbed) {
+          const panel = document.createElement("div");
+          panel.style.display = "flex";
+          panel.style.justifyContent = "center";
+          panel.style.alignItems = "center";
+          panel.style.padding = "20px";
+          panel.innerHTML = `<iframe height="600" frameborder="0" src="${game.itchEmbed}" width="800" style="max-width: 100%; border-radius: 8px; background: #000;"></iframe>`;
+          openModal({ title: `Play — ${game.title}`, contentNode: panel });
+          return;
+        }
         if (game.itchLink) {
           window.open(game.itchLink, "_blank");
           return;
