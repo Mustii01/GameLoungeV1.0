@@ -21,7 +21,8 @@
       shortDescription: "A classic Flappy Bird clone.",
       longDescription: "Story:\nTap to flap and avoid the pipes!\n\nGameplay:\nNavigate your bird through the gaps in the pipes to get the highest score possible.\n\nFeatures:\n• Classic arcade gameplay\n• Simple controls\n• High score tracking",
       itchEmbed: "https://itch.io/embed-upload/17985846?color=333333",
-      itchLink: "https://mustii01.itch.io/flappy-bird"
+      itchLink: "https://mustii01.itch.io/flappy-bird",
+      coverImage: "images/flappybirdcover.png"
     },
     {
       id: "hollow-orchard",
@@ -32,16 +33,18 @@
       shortDescription: "A moody, choice-driven story in a quiet town that remembers too much.",
       longDescription:
         "Story:\nReturn to an orchard that no longer grows fruit — only secrets.\n\nGameplay:\nExplore, investigate, and make choices that reshape relationships and outcomes.\n\nFeatures:\n• Branching dialogue\n• Environmental storytelling\n• Multiple endings\n• Atmospheric soundtrack",
+      coverImage: "images/coming-soon-background-with-focus-light-effect-design_1017-27277.avif"
     },
     {
       id: "star-forge",
       title: "Star Forge",
-      genre: "Action Roguelite",
+      genre: "Action Roguelike",
       developer: "GameLounge Studio",
       releaseDate: "2025-11-21",
       shortDescription: "Build wild weapon combos and survive shifting nebula arenas.",
       longDescription:
         "Story:\nA broken forge drifts between stars — and it still hungers.\n\nGameplay:\nFast combat with modular weapons, perks, and enemies that evolve each run.\n\nFeatures:\n• Procedural encounters\n• Synergy-driven builds\n• Bosses with phase mechanics\n• Run modifiers for endless replay",
+      coverImage: "images/coming-soon-background-with-focus-light-effect-design_1017-27277.avif"
     },
     {
       id: "lumen-below",
@@ -52,6 +55,7 @@
       shortDescription: "A soft-lit platformer where light becomes your tool and your map.",
       longDescription:
         "Story:\nA lighthouse goes dark. Something beneath it wakes.\n\nGameplay:\nManipulate beams, mirrors, and shadows to unlock paths and reveal hidden routes.\n\nFeatures:\n• Smart puzzles\n• Smooth movement\n• Secret rooms\n• Assist mode for accessibility",
+      coverImage: "images/coming-soon-background-with-focus-light-effect-design_1017-27277.avif"
     },
     {
       id: "iron-lullaby",
@@ -62,6 +66,7 @@
       shortDescription: "Turn-based tactics with clean readability and powerful unit builds.",
       longDescription:
         "Story:\nIn a war of machines, the quiet decisions matter most.\n\nGameplay:\nPosition units, manage cooldowns, and chain abilities for decisive turns.\n\nFeatures:\n• Compact tactical maps\n• Class progression\n• Permissive experimentation\n• High-contrast UI options",
+      coverImage: "images/coming-soon-background-with-focus-light-effect-design_1017-27277.avif"
     },
     {
       id: "garden-bytes",
@@ -72,6 +77,7 @@
       shortDescription: "A relaxing garden builder with little robots and big vibes.",
       longDescription:
         "Story:\nYou inherit a forgotten greenhouse and a box of curious bots.\n\nGameplay:\nPlace rooms, grow plants, and automate your cozy space with friendly helpers.\n\nFeatures:\n• Low-stress progression\n• Decorative customization\n• Simple automation\n• Photo mode snapshots",
+      coverImage: "images/coming-soon-background-with-focus-light-effect-design_1017-27277.avif"
     },
   ]);
 
@@ -184,116 +190,110 @@
     setTheme(getTheme());
   }
 
-  /* ------------------------------ Likes + data ------------------------------ */
+  /* ------------------------------ Firebase Helpers ------------------------------ */
 
-  function getLikesState() {
-    const likes = getJSON(KEYS.likes, {});
-    return likes && typeof likes === "object" ? likes : {};
-  }
-
-  function saveLikesState(likes) {
-    setJSON(KEYS.likes, likes);
-  }
-
-  function userLikesGame(userEmail, gameId) {
-    const likes = getLikesState();
-    const e = normalizeEmail(userEmail);
-    return Boolean(likes?.[e]?.[gameId]);
-  }
-
-  function getGameLikeCount(gameId) {
-    const likes = getLikesState();
-    let count = 0;
-    for (const email of Object.keys(likes)) {
-      if (likes[email] && likes[email][gameId]) count += 1;
+  // Get game likes from Firestore
+  async function getGameLikeCount(gameId) {
+    try {
+      const doc = await db.collection("games").doc(gameId).get();
+      if (doc.exists) {
+        const data = doc.data();
+        return data.likes || 0;
+      }
+      return 0;
+    } catch (e) {
+      console.error("Error getting likes:", e);
+      return 0;
     }
-    return count;
   }
 
-  function toggleLike(userEmail, gameId) {
-    const likes = getLikesState();
-    const e = normalizeEmail(userEmail);
-    const next = { ...likes };
-    const userMap = { ...(next[e] || {}) };
-    const currently = Boolean(userMap[gameId]);
-    if (currently) delete userMap[gameId];
-    else userMap[gameId] = true;
-    next[e] = userMap;
-    saveLikesState(next);
-    return !currently;
+  // Check if user likes a game
+  async function userLikesGame(userEmail, gameId) {
+    try {
+      const doc = await db.collection("userLikes").doc(`${normalizeEmail(userEmail)}_${gameId}`).get();
+      return doc.exists;
+    } catch (e) {
+      console.error("Error checking like:", e);
+      return false;
+    }
   }
 
-  /* ------------------------------- Reviews -------------------------------- */
-
-  function getReviews() {
-    const reviews = getJSON(KEYS.reviews, []);
-    return Array.isArray(reviews) ? reviews : [];
+  // Toggle like for a game
+  async function toggleLike(userEmail, gameId) {
+    const email = normalizeEmail(userEmail);
+    const likeDocId = `${email}_${gameId}`;
+    
+    try {
+      const doc = await db.collection("userLikes").doc(likeDocId).get();
+      const currentlyLiked = doc.exists;
+      
+      // Update user like document
+      if (currentlyLiked) {
+        await db.collection("userLikes").doc(likeDocId).delete();
+      } else {
+        await db.collection("userLikes").doc(likeDocId).set({
+          email,
+          gameId,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      
+      // Update game like count
+      const gameDoc = await db.collection("games").doc(gameId).get();
+      let currentLikes = 0;
+      if (gameDoc.exists) {
+        currentLikes = gameDoc.data().likes || 0;
+      }
+      
+      const newLikes = currentlyLiked ? currentLikes - 1 : currentLikes + 1;
+      await db.collection("games").doc(gameId).set({
+        likes: Math.max(0, newLikes)
+      }, { merge: true });
+      
+      return !currentlyLiked;
+    } catch (e) {
+      console.error("Error toggling like:", e);
+      return false;
+    }
   }
 
-  function saveReviews(reviews) {
-    setJSON(KEYS.reviews, reviews);
+  // Get reviews from Firestore
+  async function getGameReviews(gameId) {
+    try {
+      const snapshot = await db.collection("reviews")
+        .where("gameId", "==", gameId)
+        .orderBy("createdAt", "desc")
+        .get();
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (e) {
+      console.error("Error getting reviews:", e);
+      return [];
+    }
   }
 
-  function getGameReviews(gameId) {
-    return getReviews()
-      .filter((r) => r && r.gameId === gameId)
-      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-  }
-
-  function addReview({ gameId, email, username, rating, text }) {
+  // Add review to Firestore
+  async function addReview({ gameId, email, username, rating, text }) {
     const safeRating = Math.max(1, Math.min(5, Number(rating) || 0));
     const review = {
-      id: `${gameId}__${normalizeEmail(email)}__${Date.now()}`,
       gameId,
       email: normalizeEmail(email),
       username: normalizeUsername(username),
       rating: safeRating,
       text: String(text || "").trim(),
-      createdAt: new Date().toISOString(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    const reviews = getReviews();
-    reviews.unshift(review);
-    saveReviews(reviews);
-    return review;
-  }
-
-  function renderStars(rating) {
-    const r = Math.max(1, Math.min(5, Number(rating) || 0));
-    const el = document.createElement("span");
-    el.className = "stars";
-    el.setAttribute("aria-label", `${r} out of 5 stars`);
-    el.textContent = "★★★★★".slice(0, r) + "☆☆☆☆☆".slice(0, 5 - r);
-    return el;
-  }
-
-  function renderReviewItem(review) {
-    const item = document.createElement("div");
-    item.className = "review";
-
-    const top = document.createElement("div");
-    top.className = "review__top";
-
-    const who = document.createElement("div");
-    who.className = "review__who";
-    who.textContent = review.username || review.email || "Anonymous";
-
-    const meta = document.createElement("div");
-    meta.className = "review__meta";
-    meta.textContent = formatDate(review.createdAt);
-
-    top.appendChild(who);
-    top.appendChild(meta);
-
-    const stars = renderStars(review.rating);
-
-    const text = document.createElement("p");
-    text.className = "review__text";
-    text.textContent = review.text || "";
-
-    item.appendChild(top);
-    item.appendChild(stars);
-    item.appendChild(text);
-    return item;
+    
+    try {
+      await db.collection("reviews").add(review);
+      return { ...review, id: Date.now().toString() };
+    } catch (e) {
+      console.error("Error adding review:", e);
+      throw e;
+    }
   }
 
   /* ------------------------------- Downloads ------------------------------- */
@@ -366,6 +366,48 @@
     m.close?.addEventListener("click", closeModal);
   }
 
+  /* ------------------------------- Review Rendering ------------------------------- */
+
+  function renderStars(rating) {
+    const r = Math.max(1, Math.min(5, Number(rating) || 0));
+    const el = document.createElement("span");
+    el.className = "stars";
+    el.setAttribute("aria-label", `${r} out of 5 stars`);
+    el.textContent = "★★★★★".slice(0, r) + "☆☆☆☆☆".slice(0, 5 - r);
+    return el;
+  }
+
+  function renderReviewItem(review) {
+    const item = document.createElement("div");
+    item.className = "review";
+
+    const top = document.createElement("div");
+    top.className = "review__top";
+
+    const who = document.createElement("div");
+    who.className = "review__who";
+    who.textContent = review.username || review.email || "Anonymous";
+
+    const meta = document.createElement("div");
+    meta.className = "review__meta";
+    const date = review.createdAt?.toDate ? review.createdAt.toDate() : new Date(review.createdAt);
+    meta.textContent = formatDate(date.toISOString());
+
+    top.appendChild(who);
+    top.appendChild(meta);
+
+    const stars = renderStars(review.rating);
+
+    const text = document.createElement("p");
+    text.className = "review__text";
+    text.textContent = review.text || "";
+
+    item.appendChild(top);
+    item.appendChild(stars);
+    item.appendChild(text);
+    return item;
+  }
+
   /* ----------------------------- Shared topbar ----------------------------- */
 
   function setActiveNav() {
@@ -391,15 +433,18 @@
 
   /* ------------------------------- Home page ------------------------------- */
 
-  function createGameCard({ game, account }) {
+  function createGameCard({ game, account, likeCount, userLiked }) {
     const card = document.createElement("article");
     card.className = "card game-card";
     card.dataset.gameId = game.id;
 
     const cover = document.createElement("div");
     cover.className = "game-card__cover";
+    cover.style.backgroundImage = `url(${game.coverImage})`;
+    cover.style.backgroundSize = "cover";
+    cover.style.backgroundPosition = "center";
     cover.setAttribute("role", "img");
-    cover.setAttribute("aria-label", `${game.title} cover image placeholder`);
+    cover.setAttribute("aria-label", `${game.title} cover image`);
 
     const body = document.createElement("div");
     body.className = "game-card__body";
@@ -415,7 +460,7 @@
     like.type = "button";
     like.className = "like-btn";
     like.dataset.action = "like";
-    like.setAttribute("aria-pressed", String(userLikesGame(account.email, game.id)));
+    like.setAttribute("aria-pressed", String(userLiked));
 
     const icon = document.createElement("span");
     icon.className = "like-btn__icon";
@@ -424,7 +469,7 @@
     const count = document.createElement("span");
     count.className = "small";
     count.dataset.likeCount = "true";
-    count.textContent = String(getGameLikeCount(game.id));
+    count.textContent = String(likeCount);
 
     like.appendChild(icon);
     like.appendChild(count);
@@ -446,7 +491,8 @@
     const reviewCount = document.createElement("span");
     reviewCount.className = "muted small";
     reviewCount.dataset.reviewCount = "true";
-    reviewCount.textContent = `${getGameReviews(game.id).length} reviews`;
+    reviewCount.dataset.gameId = game.id;
+    reviewCount.textContent = "0 reviews";
 
     meta.appendChild(genre);
     meta.appendChild(reviewCount);
@@ -485,7 +531,7 @@
     return card;
   }
 
-  function renderHome(account) {
+  async function renderHome(account) {
     const heroTitle = qs("[data-hero-title]");
     const heroSub = qs("[data-hero-subtitle]");
     setText(heroTitle, "Indie releases, presented like a premium studio portfolio.");
@@ -501,17 +547,30 @@
     const featuredLink = qs("[data-featured-link]");
     if (featuredLink) featuredLink.href = `game.html?id=${encodeURIComponent(featured.id)}`;
 
+    const featuredLikeCount = await getGameLikeCount(featured.id);
+    const featuredLiked = await userLikesGame(account.email, featured.id);
     const featuredLikeBtn = qs("[data-featured-like]");
     if (featuredLikeBtn) {
-      featuredLikeBtn.setAttribute("aria-pressed", String(userLikesGame(account.email, featured.id)));
-      setText(qs("[data-featured-like-count]"), String(getGameLikeCount(featured.id)));
+      featuredLikeBtn.setAttribute("aria-pressed", String(featuredLiked));
+      setText(qs("[data-featured-like-count]"), String(featuredLikeCount));
     }
 
     const grid = qs("[data-game-grid]");
     if (!grid) return;
     grid.innerHTML = "";
+    
     for (const game of GAMES) {
-      grid.appendChild(createGameCard({ game, account }));
+      const likeCount = await getGameLikeCount(game.id);
+      const userLikedGame = await userLikesGame(account.email, game.id);
+      const card = createGameCard({ game, account, likeCount, userLiked: userLikedGame });
+      grid.appendChild(card);
+      
+      // Load review count
+      const reviews = await getGameReviews(game.id);
+      const reviewCountEl = qs(`[data-review-count="true"][data-game-id="${game.id}"]`, card);
+      if (reviewCountEl) {
+        reviewCountEl.textContent = `${reviews.length} reviews`;
+      }
     }
   }
 
@@ -584,21 +643,25 @@
     wrapper.appendChild(actions);
 
     cancelBtn.addEventListener("click", closeModal);
-    saveBtn.addEventListener("click", () => {
+    saveBtn.addEventListener("click", async () => {
       const text = String(textArea.value || "").trim();
       if (!text) {
         setAlert(alert, "error", "Please write a short review before saving.");
         return;
       }
-      addReview({
-        gameId: game.id,
-        email: account.email,
-        username: account.displayName,
-        rating: Number(ratingSelect.value),
-        text,
-      });
-      if (typeof onSaved === "function") onSaved();
-      closeModal();
+      try {
+        await addReview({
+          gameId: game.id,
+          email: account.email,
+          username: account.displayName,
+          rating: Number(ratingSelect.value),
+          text,
+        });
+        if (typeof onSaved === "function") onSaved();
+        closeModal();
+      } catch (e) {
+        setAlert(alert, "error", "Failed to save review. Please try again.");
+      }
     });
 
     openModal({ title: `Review — ${game.title}`, contentNode: wrapper });
@@ -607,7 +670,7 @@
   function wireHomeInteractions(account) {
     const root = qs("[data-game-grid]");
     if (root) {
-      root.addEventListener("click", (e) => {
+      root.addEventListener("click", async (e) => {
         const target = e.target instanceof Element ? e.target.closest("[data-action]") : null;
         if (!target) return;
         const card = target.closest("[data-game-id]");
@@ -621,19 +684,28 @@
           return;
         }
         if (action === "like") {
-          const liked = toggleLike(account.email, game.id);
+          const liked = await toggleLike(account.email, game.id);
           target.setAttribute("aria-pressed", String(liked));
-          const countEl = qs("[data-like-count='true']", target);
-          if (countEl) countEl.textContent = String(getGameLikeCount(game.id));
+          const newCount = await getGameLikeCount(game.id);
+          const countEl = qs("[data-like-count=\"true\"]", target);
+          if (countEl) countEl.textContent = String(newCount);
+          
+          // Update featured like count if it's the featured game
+          if (gameId === GAMES[0].id) {
+            setText(qs("[data-featured-like-count]"), String(newCount));
+          }
           return;
         }
         if (action === "review") {
           openQuickReviewModal({
             game,
             account,
-            onSaved: () => {
-              const countEl = qs("[data-review-count='true']", card);
-              if (countEl) countEl.textContent = `${getGameReviews(game.id).length} reviews`;
+            onSaved: async () => {
+              const countEl = qs("[data-review-count=\"true\"]", card);
+              if (countEl) {
+                const reviews = await getGameReviews(game.id);
+                countEl.textContent = `${reviews.length} reviews`;
+              }
             },
           });
         }
@@ -642,18 +714,19 @@
 
     const featuredLike = qs("[data-featured-like]");
     if (featuredLike) {
-      featuredLike.addEventListener("click", () => {
+      featuredLike.addEventListener("click", async () => {
         const featured = GAMES[0];
-        const liked = toggleLike(account.email, featured.id);
+        const liked = await toggleLike(account.email, featured.id);
         featuredLike.setAttribute("aria-pressed", String(liked));
-        setText(qs("[data-featured-like-count]"), String(getGameLikeCount(featured.id)));
+        const newCount = await getGameLikeCount(featured.id);
+        setText(qs("[data-featured-like-count]"), String(newCount));
       });
     }
   }
 
   /* ------------------------------ Game details ------------------------------ */
 
-  function renderGameDetails(account) {
+  async function renderGameDetails(account) {
     const gameId = getQueryParam("id");
     const game = GAMES.find((g) => g.id === gameId);
     const missing = qs("[data-game-missing]");
@@ -677,36 +750,34 @@
 
     const cover = qs(".cover-lg");
     if (cover) {
-      if (game.itchEmbed) {
-        cover.innerHTML = `<iframe height="600" frameborder="0" src="${game.itchEmbed}" width="800" style="max-width: 100%; border-radius: 8px; margin: 0 auto; display: block; background: #000;" allowfullscreen></iframe>`;
-        cover.style.background = "transparent";
-        cover.style.display = "flex";
-        cover.style.alignItems = "center";
-        cover.style.justifyContent = "center";
-        cover.style.padding = "20px 0";
-      } else {
+      // Don't autostart Flappy Bird - just show cover image
+      if (game.coverImage) {
+        cover.style.backgroundImage = `url(${game.coverImage})`;
+        cover.style.backgroundSize = "cover";
+        cover.style.backgroundPosition = "center";
         cover.innerHTML = "";
-        cover.style.background = "";
       }
     }
 
+    const likeCount = await getGameLikeCount(game.id);
+    const liked = await userLikesGame(account.email, game.id);
     const likeBtn = qs("[data-game-like]");
     if (likeBtn) {
-      likeBtn.setAttribute("aria-pressed", String(userLikesGame(account.email, game.id)));
-      setText(qs("[data-game-like-count]"), String(getGameLikeCount(game.id)));
+      likeBtn.setAttribute("aria-pressed", String(liked));
+      setText(qs("[data-game-like-count]"), String(likeCount));
     }
 
+    const reviews = await getGameReviews(game.id);
     const reviewCount = qs("[data-game-review-count]");
-    if (reviewCount) reviewCount.textContent = `${getGameReviews(game.id).length} reviews`;
+    if (reviewCount) reviewCount.textContent = `${reviews.length} reviews`;
 
-    renderGameReviews(game.id);
+    renderGameReviews(reviews);
   }
 
-  function renderGameReviews(gameId) {
+  function renderGameReviews(reviews) {
     const list = qs("[data-review-list]");
     if (!list) return;
     list.innerHTML = "";
-    const reviews = getGameReviews(gameId);
     if (reviews.length === 0) {
       const empty = document.createElement("div");
       empty.className = "alert";
@@ -724,10 +795,11 @@
 
     const likeBtn = qs("[data-game-like]");
     if (likeBtn) {
-      likeBtn.addEventListener("click", () => {
-        const liked = toggleLike(account.email, game.id);
+      likeBtn.addEventListener("click", async () => {
+        const liked = await toggleLike(account.email, game.id);
         likeBtn.setAttribute("aria-pressed", String(liked));
-        setText(qs("[data-game-like-count]"), String(getGameLikeCount(game.id)));
+        const newCount = await getGameLikeCount(game.id);
+        setText(qs("[data-game-like-count]"), String(newCount));
       });
     }
 
@@ -784,7 +856,7 @@
       const alert = qs("[data-review-alert]");
       const rating = qs("[data-review-rating]");
       const text = qs("[data-review-text]");
-      form.addEventListener("submit", (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
         setAlert(alert, "error", "");
         const reviewText = String(text?.value || "").trim();
@@ -792,17 +864,22 @@
           setAlert(alert, "error", "Please write a review before submitting.");
           return;
         }
-        addReview({
-          gameId: game.id,
-          email: account.email,
-          username: account.displayName,
-          rating: Number(rating?.value || 3),
-          text: reviewText,
-        });
-        if (text) text.value = "";
-        setAlert(alert, "success", "Review saved.");
-        setText(qs("[data-game-review-count]"), `${getGameReviews(game.id).length} reviews`);
-        renderGameReviews(game.id);
+        try {
+          await addReview({
+            gameId: game.id,
+            email: account.email,
+            username: account.displayName,
+            rating: Number(rating?.value || 3),
+            text: reviewText,
+          });
+          if (text) text.value = "";
+          setAlert(alert, "success", "Review saved.");
+          const reviews = await getGameReviews(game.id);
+          setText(qs("[data-game-review-count]"), `${reviews.length} reviews`);
+          renderGameReviews(reviews);
+        } catch (e) {
+          setAlert(alert, "error", "Failed to save review. Please try again.");
+        }
       });
     }
   }
@@ -856,7 +933,7 @@
     if (passForm) {
         passForm.style.display = "none";
         const help = qs(".help", passForm.parentElement);
-        if(help) help.textContent = "Password changes can be initiated via Firebase's built-in email actions.";
+        if (help) help.textContent = "Password changes can be initiated via Firebase's built-in email actions.";
     }
 
     const themeRadios = qsa("input[name='theme']");
@@ -879,11 +956,9 @@
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
         const ok = window.confirm(
-          "Clear ALL local data?\n\nThis removes:\n- Likes\n- Reviews\n- Theme preference\n\nThis cannot be undone."
+          "Clear ALL local data?\n\nThis removes:\n- Theme preference\n\nThis cannot be undone."
         );
         if (!ok) return;
-        removeKey(KEYS.likes);
-        removeKey(KEYS.reviews);
         removeKey(KEYS.theme);
         firebase.auth().signOut();
       });
@@ -956,7 +1031,7 @@
             return db.collection("users").doc(user.uid).set({
               username: un,
               email: em,
-              createdAt: new Date().toISOString()
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
           });
         })
@@ -995,7 +1070,7 @@
               }
             }
             
-            // Apply realtime theme changes
+            // Apply realtime theme changes (still using localStorage)
             if (data.theme) {
               setTheme(data.theme);
               if (page === "settings") {
@@ -1013,11 +1088,11 @@
         renderUserChip(user);
 
         if (page === "home") {
-          renderHome(user);
+          await renderHome(user);
           wireHomeInteractions(user);
         }
         if (page === "game") {
-          renderGameDetails(user);
+          await renderGameDetails(user);
           wireGameInteractions(user);
         }
         if (page === "settings") {
