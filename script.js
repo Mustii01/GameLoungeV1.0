@@ -944,6 +944,33 @@
           return;
         }
 
+        // Realtime listener for user document
+        db.collection("users").doc(user.uid).onSnapshot((doc) => {
+          if (doc.exists) {
+            const data = doc.data();
+            
+            // Apply realtime username changes
+            if (data.username) {
+              renderUserChip({ displayName: data.username, email: user.email });
+              if (page === "settings") {
+                setText(qs("[data-profile-username]"), data.username);
+              }
+            }
+            
+            // Apply realtime theme changes
+            if (data.theme) {
+              setTheme(data.theme);
+              if (page === "settings") {
+                setText(qs("[data-settings-theme]"), data.theme);
+                const dark = qs("#themeDark");
+                const light = qs("#themeLight");
+                if (dark) dark.checked = data.theme === "dark";
+                if (light) light.checked = data.theme === "light";
+              }
+            }
+          }
+        });
+
         setActiveNav();
         renderUserChip(user);
 
