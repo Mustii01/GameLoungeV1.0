@@ -819,8 +819,11 @@
         img.src = `images/${imgFile}`;
         img.alt = "Flappy Bird screenshot";
         img.className = "shot";
+        img.style.height = "140px";
+        img.style.width = "100%";
         img.style.objectFit = "cover";
         img.style.borderRadius = "var(--radius-md)";
+        img.style.border = "1px solid var(--stroke)";
         screenshotsContainer.appendChild(img);
       });
     }

@@ -693,6 +693,9 @@ html[data-theme="light"] .alert--success {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 60%),
     radial-gradient(500px 220px at 20% 25%, rgba(124, 92, 255, 0.22), transparent 55%),
     radial-gradient(420px 220px at 75% 60%, rgba(63, 231, 198, 0.16), transparent 60%);
+  width: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* About profile cards */
