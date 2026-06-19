@@ -13,14 +13,15 @@
 
   const GAMES = Object.freeze([
     {
-      id: "neon-drift",
-      title: "Neon Drift",
-      genre: "Arcade Racer",
-      developer: "GameLounge Studio",
-      releaseDate: "2026-04-12",
-      shortDescription: "A tight, neon-soaked time-trial racer built for perfect runs.",
-      longDescription:
-        "Story:\nA city of light, a debt of shadows.\n\nGameplay:\nMaster precision drifting, boost chaining, and risky shortcuts across handcrafted tracks.\n\nFeatures:\n• Responsive arcade handling\n• Unlockable cars and paint jobs\n• Weekly challenges and ghost races\n• Accessible difficulty options",
+      id: "flappy-bird",
+      title: "Flappy Bird",
+      genre: "Arcade",
+      developer: "Mustii01",
+      releaseDate: "2024-01-01",
+      shortDescription: "A classic Flappy Bird clone.",
+      longDescription: "Story:\nTap to flap and avoid the pipes!\n\nGameplay:\nNavigate your bird through the gaps in the pipes to get the highest score possible.\n\nFeatures:\n• Classic arcade gameplay\n• Simple controls\n• High score tracking",
+      itchEmbed: "https://itch.io/embed/4690830",
+      itchLink: "https://mustii01.itch.io/flappy-bird"
     },
     {
       id: "hollow-orchard",
@@ -716,11 +717,23 @@
     }
 
     const downloadBtn = qs("[data-game-download]");
-    if (downloadBtn) downloadBtn.addEventListener("click", () => downloadPlaceholder(game));
+    if (downloadBtn) {
+      downloadBtn.addEventListener("click", () => {
+        if (game.itchLink) {
+          window.open(game.itchLink, "_blank");
+        } else {
+          downloadPlaceholder(game);
+        }
+      });
+    }
 
     const playBtn = qs("[data-game-play]");
     if (playBtn) {
       playBtn.addEventListener("click", () => {
+        if (game.itchLink) {
+          window.open(game.itchLink, "_blank");
+          return;
+        }
         const panel = document.createElement("div");
         panel.className = "form";
         const msg = document.createElement("div");
