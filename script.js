@@ -260,15 +260,27 @@
   // Get reviews from Firestore
   async function getGameReviews(gameId) {
     try {
+      console.log("Getting reviews for game:", gameId);
       const snapshot = await db.collection("reviews")
         .where("gameId", "==", gameId)
-        .orderBy("createdAt", "desc")
         .get();
       
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const reviews = snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log("Review doc:", doc.id, data);
+        return {
+          id: doc.id,
+          ...data
+        };
+      });
+      // Sort reviews manually by createdAt descending
+      reviews.sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        return dateB - dateA;
+      });
+      console.log("Total reviews found:", reviews.length);
+      return reviews;
     } catch (e) {
       console.error("Error getting reviews:", e);
       return [];
@@ -288,8 +300,10 @@
     };
     
     try {
-      await db.collection("reviews").add(review);
-      return { ...review, id: Date.now().toString() };
+      console.log("Adding review to Firestore:", review);
+      const docRef = await db.collection("reviews").add(review);
+      console.log("Review added with ID:", docRef.id);
+      return { ...review, id: docRef.id };
     } catch (e) {
       console.error("Error adding review:", e);
       throw e;
@@ -378,6 +392,7 @@
   }
 
   function renderReviewItem(review) {
+    console.log("Rendering review:", review);
     const item = document.createElement("div");
     item.className = "review";
 
@@ -390,13 +405,20 @@
 
     const meta = document.createElement("div");
     meta.className = "review__meta";
-    const date = review.createdAt?.toDate ? review.createdAt.toDate() : new Date(review.createdAt);
-    meta.textContent = formatDate(date.toISOString());
+    let dateStr = "";
+    if (review.createdAt) {
+      if (review.createdAt.toDate) {
+        dateStr = formatDate(review.createdAt.toDate().toISOString());
+      } else if (typeof review.createdAt === "string") {
+        dateStr = formatDate(review.createdAt);
+      }
+    }
+    meta.textContent = dateStr || "Recently";
 
     top.appendChild(who);
     top.appendChild(meta);
 
-    const stars = renderStars(review.rating);
+    const stars = renderStars(review.rating || 3);
 
     const text = document.createElement("p");
     text.className = "review__text";
@@ -784,12 +806,12 @@
     const screenshotsContainer = qs(".section.screenshots");
     if (screenshotsContainer && game.id === "flappy-bird") {
       const imageFiles = [
-        "Image_2026-06-19_083358_289.jpg",
-        "Image_2026-06-19_083431_217.jpg",
-        "Image_2026-06-19_083449_048.jpg",
-        "Image_2026-06-19_083358_289.jpg", // Using existing images since we only have 3
-        "Image_2026-06-19_083431_217.jpg",
-        "Image_2026-06-19_083449_048.jpg"
+        "Screenshotflappybird1.png",
+        "Screenshotflappybird2.png",
+        "Screenshotflappybird3.png",
+        "Screenshotflappybird4.png",
+        "Screenshotflappybird5.png",
+        "Screenshotflappybird6.png"
       ];
       screenshotsContainer.innerHTML = "";
       imageFiles.forEach((imgFile) => {
