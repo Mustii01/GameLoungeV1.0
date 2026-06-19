@@ -20,7 +20,7 @@
       releaseDate: "2024-01-01",
       shortDescription: "A classic Flappy Bird clone.",
       longDescription: "Story:\nTap to flap and avoid the pipes!\n\nGameplay:\nNavigate your bird through the gaps in the pipes to get the highest score possible.\n\nFeatures:\n• Classic arcade gameplay\n• Simple controls\n• High score tracking",
-      itchEmbed: "https://itch.io/embed/4690830",
+      itchEmbed: "https://itch.io/embed-upload/17985846?color=333333",
       itchLink: "https://mustii01.itch.io/flappy-bird"
     },
     {
@@ -674,6 +674,21 @@
     setText(qs("[data-game-date]"), formatDate(game.releaseDate));
     setText(qs("[data-game-short]"), game.shortDescription);
     setText(qs("[data-game-long]"), game.longDescription);
+
+    const cover = qs(".cover-lg");
+    if (cover) {
+      if (game.itchEmbed) {
+        cover.innerHTML = `<iframe height="600" frameborder="0" src="${game.itchEmbed}" width="800" style="max-width: 100%; border-radius: 8px; margin: 0 auto; display: block; background: #000;" allowfullscreen></iframe>`;
+        cover.style.background = "transparent";
+        cover.style.display = "flex";
+        cover.style.alignItems = "center";
+        cover.style.justifyContent = "center";
+        cover.style.padding = "20px 0";
+      } else {
+        cover.innerHTML = "";
+        cover.style.background = "";
+      }
+    }
 
     const likeBtn = qs("[data-game-like]");
     if (likeBtn) {
